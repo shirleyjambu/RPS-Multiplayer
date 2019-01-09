@@ -14,27 +14,69 @@
 
 </head>
 <body>
+<!-- Main Container-->
+<div class="container">
+  <div class="jumbotron text-center">
+    <h1><strong><em>Rock, Paper, Scissors</em></strong></h1>
+  </div>
+  <!-- Div for name Entry-->
+  <div>
+  <form id="userForm">  
+    <label for="userName">Name :</label>  
+    <input type="text" id="userName" placeholder="Enter Name">  
+    <button class="btn btn-info" id="signIn">Sign In</button>
+  </form>
+  </div>
+  <!--Card deck for Game-->
+  <div class="card-deck">
+      <div class="card">
+        <h4 class="card-header text-center">Player 1<span id="player1"></span></h4>
+        <div class="card-body">
+          <p class="card-text">Click on your pick</p>
+          <table>
+            <tr>
+              <td><img src="./assets/images/rock.jpg" class="my-img" alt="Rock" id="rock"></td>
+              <td><img src="./assets/images/paper.jpg" class="my-img" alt="Paper" id="paper"></td>
+              <td><img src="./assets/images/scissors.jpg" class="my-img" alt="Scissors" id="scissors"></td>
+            </tr>
+          </table>
+        </div>
+      </div>
+      <div class="card">
+        <h4 class="card-header text-center">Score</h4>
+        <div class="card-body">
+          <p class="card-text">Player 1: <span id="pOneScore">0</span></p>
+          <p class="card-text">Player 2: <span id="pTwoScore">0</span></p>
+          <p class="card-text">Result: <span id="result"></span></p>
+          <p class="card-text">Players Connected: <span id="status"></span></p>
+    
+        </div>
+      </div>
 
-<script>
-    // Initialize Firebase
-    var config = {
-      apiKey: "AIzaSyCwVMm6ADZK8vhomncIsLiVcb1y41msKhU",
-      authDomain: "classwork-3c0ce.firebaseapp.com",
-      databaseURL: "https://classwork-3c0ce.firebaseio.com",
-      projectId: "classwork-3c0ce",
-      storageBucket: "classwork-3c0ce.appspot.com",
-      messagingSenderId: "972609370378"
-    };
-    firebase.initializeApp(config);
+      <div class="card">
+        <h4 class="card-header text-center">Player 2</h4>
+        <div class="card-body">
+          <p class="card-text">Your opponent's choice</p>
+        </div>
+      </div>
+
+      <div class="card">
+          <h4 class="card-header text-center">Chat</h4>
+          <div class="card-body">
+            <span id="chatBox"></span>
+            <textarea id="message"></textarea>
+            <button id="msgSend">Send</button>
+          </div>
+      </div>
+    </div><!--End of card deck-->
+
   
-</script>
+</div><!-- End of Main Container-->
 
-<img src="./assets/images/rock.jpg" class="my-img" alt="Rock">
-<img src="./assets/images/paper.jpg" class="my-img" alt="Paper">
-<img src="./assets/images/scissors.jpg" class="my-img" alt="Scissors">
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.13.0/umd/popper.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.1.3/js/bootstrap.min.js"></script>
+<script src="./assets/javascript/rps.js"></script>
 </body>
 </html>
