@@ -1,7 +1,3 @@
-// Intialise Variables
-var userName="USER";
-var STATE = {OPEN:1,JOINED:2};
-
 // Initialize Firebase
 var config = {
   apiKey: "AIzaSyCwVMm6ADZK8vhomncIsLiVcb1y41msKhU",
@@ -13,14 +9,13 @@ var config = {
 };
 firebase.initializeApp(config);
 
-// References to DB firebase
-var database = firebase.database();
-var chatRef = database.ref("/chat");
-var rpsRef = database.ref("/rps");
-var connectionsRef = database.ref("/connections");
+
+
+// Intialise Variables
+var userName="Guest";
+var STATE = {OPEN:1,JOINED:2};
 
 /*
-
 {
   "creator":{"displayName":"player 1","uid":"999"},
   "joiner":{"displayName":"player 1","uid":"999"},
@@ -28,38 +23,48 @@ var connectionsRef = database.ref("/connections");
 }
 */
 
-//Function to start game
+// References to DB firebase
+var database = firebase.database();
+
+var chatRef = database.ref("/rps/chat");
+var gameRef = database.ref("/rps/game");
+
+//var connectionsRef = database.ref("/connections");
+
+// Get from firebase documentation
+
 function createGame(){
-  //var user=firebase.auth().currentUser;
+  var user=firebase.auth().currentUser;
+  console.log("Create game:" + user.displayName);
+
   var currentGame = {
-    "creator":{"name":userName},
+    "creator":{"uid":user.uid,"displayName":user.displayName},
     "state":STATE.OPEN
   }
-  rpsRef.push().set(currentGame);
+  gameRef.push().set(currentGame);
 }
 
 function joinGame(key){
-  //var user=firebase.auth().currentUser;
-  var gameRef = rpsRef.child(key);
-  gameRef.transaction(function(game){
+  var user=firebase.auth().currentUser;
+  var gRef = gameRef.child(key);
+  gRef.transaction(function(game){
     if(!game.joiner){
       game.state=STATE.JOINED;
-      game.joiner={"name":userName}
+      //game.joiner={"name":userName}
       //game.joiner={"uid":user.uid, "displayName":user.displayName}
     }
     return game;
   })
 }
 
-
 function watchGame(key){
-  var gameRef = rpsRef.child(key);
-  gameRef.on("value",function(snapshot){
+  var gRef = gameRef.child(key);
+  gRef.on("value",function(snapshot){
     var game=snapshot.val();
     switch(game.STATE){
-      case STATE.JOINED:joinedGame(gameRef,game);break;
+      case STATE.JOINED:joinedGame(gRef,game);break;
       case STATE.ICON_DETECTED:displayDetectedIcon(game);
-                                determineWinner(gameRef,game);break;
+                                determineWinner(gRef,game);break;
       case STATE.COMPLETE:showWinner(game);break;
     }
   });
@@ -78,10 +83,57 @@ function sendChatMessage(userName){
 
 //Add message to the Chat Window
 function addChatMessage(userName,message){
-  $("#chatBox").append(`${userName}:${message}`);
+  $("#chatBox").append(`<p>${userName}:${message}</p>`);
 }
 
-//Listener for new message
+function setJoinGameButton(userName,uid){
+    $("#joinGameSp").append(`<button id='${uid}'>Join ${userName}</button>`);
+}
+
+//Set Current User Name
+/*function setCurrentUserName(){
+  var user=firebase.auth().currentUser;
+  if(user){
+    userName = user.displayName;
+    $("#userName").text(userName);
+  }else{
+    let userNamels=localStorage.getItem("rpsUserName");
+    $("#userName").text(userNamels);
+  }
+  
+};*/
+
+// Event handlers
+$(document).ready(function(){
+   
+  //Set Current User Name  
+  //setCurrentUserName();
+
+  //On Click of Start Game
+  $("#startGameBtn").on("click",function(){
+    createGame();
+  });
+
+  //When user makes his choice
+
+  $(".my-img").on("click",function(){
+    var userChoice = $(this).attr("id");
+    console.log(`user clicked ${userChoice}`);
+
+    watchGame();
+
+  });
+    
+  // When chat send button is clicked
+  $("#msgSend").on("click",function(){
+      sendChatMessage(userName);
+  });
+
+});
+
+/****************** */
+//Listeners
+//For new chat message
 chatRef.on("child_added",function(snapshot){
   var message = snapshot.val();
   console.log("Message on child_added " + message);
@@ -91,37 +143,17 @@ chatRef.on("child_added",function(snapshot){
 });
 
 //Listener for joiners
-rpsRef.on("child_added",function(snapshot){
-  console.log("inside joiners : " + snapshot.val());
-  //joinGame();//key has to be passed
+gameRef.on("child_added",function(snapshot){
+  let gameId=snapshot.key;
+  let gRef = snapshot.val();
+  let createrName = gRef.creator.displayName;
+
+  //Set Join Mode for Open Games
+  if(!gRef.joiner){
+    setJoinGameButton(createrName,gameId);
+  }
+  setCurrentUserName();
+  //joinGame(snapshot.key); // to be called if it is second
 });
 
-// Event handlers
-$(document).ready(function(){
-  
-  //User Sign in
-  $("#signIn").on("click",function(){
-    event.preventDefault();
-    userName = $("#userName").val().trim();
-    $("#player1").text(" :" + userName);
-    createGame();
-  });
 
-  //When user makes his choice
-  $(".my-img").on("click",function(){
-    var userChoice = $(this).attr("id");
-    console.log(`user clicked ${userChoice}`);
-
-    database.ref("/rps").set({
-      "choice": userChoice
-    });
-
-  });
-
-  // When chat send button is clicked
-  $("#msgSend").on("click",function(){
-    
-    sendChatMessage(userName);
-  });
-
-});
