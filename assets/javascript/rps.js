@@ -28,6 +28,7 @@ var database = firebase.database();
 
 var chatRef = database.ref("/rps/chat");
 var gameRef = database.ref("/rps/game");
+var openGames = database.ref("/rps/game").orderByChild("state").equalTo(STATE.OPEN);
 
 //var connectionsRef = database.ref("/connections");
 
@@ -144,16 +145,37 @@ chatRef.on("child_added",function(snapshot){
 
 //Listener for joiners
 gameRef.on("child_added",function(snapshot){
+  
+
+  //Set Join Mode for Open Games
+  if(!gRef.joiner){
+    
+  }
+  //setCurrentUserName();
+  joinGame(snapshot.key); // to be called if it is second
+});
+
+
+//Listener for Open Games
+openGames.on("child_added",function(snapshot){
+  
   let gameId=snapshot.key;
   let gRef = snapshot.val();
   let createrName = gRef.creator.displayName;
 
-  //Set Join Mode for Open Games
-  if(!gRef.joiner){
+  //ignore our own games
+  if(gRef.creator.uid != firebase.auth().currentUser.uid){
+    //addJoinbutton
     setJoinGameButton(createrName,gameId);
   }
-  setCurrentUserName();
-  //joinGame(snapshot.key); // to be called if it is second
+});
+
+//Remove games that are joined 
+openGames.on("child_removed",function(snapshot){
+  var item = document.querySelector("#"+snapshot.key);
+  if(item){
+    item.remove();
+  }
 });
 
 
