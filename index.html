@@ -41,16 +41,25 @@
           <div class="jumbotron text-center">
               <h1><strong><em>Rock, Paper, Scissors</em></strong></h1>
           </div>
+
+          <!--Grid for Open Games-->
+          <div>
+            Open Games
+            <div>
+                <p id="joinGameSp">
+                  
+                  </p>
+              </div>
+          </div>
+          
           <!--Card deck for Game-->
-      <div class="card-deck">
-          <div class="card">
-            <h4 class="card-header text-center">Player 1<span id="player1"></span></h4>
+          <div id="gameCardDeck" class="card-deck">
+            <div class="card">
+            <h4 class="card-header text-center"><span id="player1"></span></h4>
             <div class="card-body">
               <p class="card-text">Click on your pick</p>
-              <div>
-                  <img src="./assets/images/rock.jpg" class="my-img" alt="Rock" id="rock">
-                  <img src="./assets/images/paper.jpg" class="my-img" alt="Paper" id="paper">
-                  <img src="./assets/images/scissors.jpg" class="my-img" alt="Scissors" id="scissors">
+              <div id="player1Choices">
+                  
               </div>
             </div>
           </div>
@@ -64,17 +73,16 @@
               <p id="startGameSp">
                 <button id="startGameBtn">Start Game</button>
               </p>
-              <p id="joinGameSp">
-                  
-                </p>
+              
         
             </div>
           </div>
     
           <div class="card">
-            <h4 class="card-header text-center">Player 2</h4>
+            <h4 class="card-header text-center"><span id="player2"></span></h4>
             <div class="card-body">
               <p class="card-text">Your opponent's choice</p>
+              <div id="player2Choices"></div>
             </div>
           </div>
           
@@ -86,7 +94,7 @@
         <div class="p-2 col-3">
             <!--Logout Div-->
             <div id="user-div">
-              Welcome&nbsp;&nbsp;<span id="userName"></span>&nbsp;&nbsp;<button>Logout</button>
+              Welcome&nbsp;&nbsp;<span id="userName"></span>&nbsp;&nbsp;<button id="logout">Logout</button>
               <br><br>
             </div>
       
@@ -110,6 +118,6 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.13.0/umd/popper.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.1.3/js/bootstrap.min.js"></script>
-<script src="./assets/javascript/signIn.js"></script>
+<script src="./assets/javascript/rps.js"></script>
 </body>
 </html>
