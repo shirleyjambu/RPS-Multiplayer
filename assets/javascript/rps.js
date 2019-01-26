@@ -108,6 +108,10 @@ firebase.auth().onAuthStateChanged(authStateChangeListener);
 // Intialise Variables
 var userName="Guest";
 var STATE = {OPEN:1,JOINED:2,ICON_DETECTED:3,COMPLETE:4};
+var creatorWins = 0;
+var joinerWins = 0;
+var ties=0;
+var gameCounter = 0;
 
 /*
 {
@@ -122,7 +126,8 @@ var database = firebase.database();
 
 var chatRef = database.ref("/rps/chat");
 var gameRef = database.ref("/rps/game");
-var openGames = database.ref("/rps/game").orderByChild("state").equalTo(STATE.OPEN);
+var currentGames = database.ref("/rps/game").orderByChild("STATE").equalTo(STATE.ICON_DETECTED);
+var openGames = database.ref("/rps/game").orderByChild("STATE").equalTo(STATE.OPEN);
 
 //var connectionsRef = database.ref("/connections");
 
@@ -139,7 +144,7 @@ function createGame(){
   console.log("after exissting createGame");
   var currentGame = {
     "creator":{"uid":user.uid,"displayName":user.displayName},
-    "state":STATE.OPEN
+    "STATE":STATE.OPEN
   }
   gameRef.push().set(currentGame);
 }
@@ -162,7 +167,7 @@ function joinGame(key){
     if(!game.joiner){
       $("#player1").text(game.creator.displayName);
       $("#gamePlayedId").val(key);
-      game.state=STATE.JOINED;
+      game.STATE=STATE.JOINED;
       //game.joiner={"name":userName}
       game.joiner={"uid":user.uid, "displayName":user.displayName}
     }
@@ -173,14 +178,18 @@ function joinGame(key){
 }
 
 function watchGame(key){
+  console.log("Inside watchGame : Key === " + key);
   var gRef = gameRef.child(key);
+  console.log("Inside watchGame : gRef === " + gRef);
   gRef.on("value",function(snapshot){
     var game=snapshot.val();
+    console.log("GAME STATE : " + game.STATE);
     switch(game.STATE){
       case STATE.JOINED:
         joinedGame(gRef,game);
         break;
       case STATE.ICON_DETECTED:
+        setGameId(key);
         displayDetectedIcon(game);
         determineWinner(gRef,game);
         break;
@@ -191,18 +200,7 @@ function watchGame(key){
   });
 }
 
-//Function display user Choice
-function displayDetectedIcon(game){
-  
-  console.log("displayDetectedIcon(game);");
-  if(game.joiner.choice){
-    $("#player2Choice").empty();
-    $("#player2Choice").append();
-  }else if(game.creator.choice){
-    $("#player1Choice").empty();
-    $("#player1Choice").append();
-  }
-}
+//displayDetectedIcon
 
 //Function to send message
 function sendChatMessage(userName){
@@ -294,7 +292,7 @@ function addUserChoice(userChoice,gameKey){
   gameRef.update(data);*/
 
 
-  var data = {state: STATE.ICON_DETECTED};
+  var data = {STATE: STATE.ICON_DETECTED};
   if(userId === game.joiner.uid){
     data["joiner/choice"]=userChoice;
   }else{
@@ -375,7 +373,7 @@ chatRef.on("child_added",function(snapshot){
 
 //Listener for Open Games
 openGames.on("child_added",function(snapshot){
-
+  console.log("Child added called");
   let gameId=snapshot.key;
   let gRef = snapshot.val();
   let createrName = gRef.creator.displayName;
@@ -392,10 +390,89 @@ openGames.on("child_added",function(snapshot){
 
 //Remove games that are joined 
 openGames.on("child_removed",function(snapshot){
+  console.log("Child removed called");
   var item = document.querySelector("#"+snapshot.key);
   if(item){
     item.remove();
   }
 });
 
+//Games been playing currently
+currentGames.on("child_added",function(snapshot){
+  console.log("Child added on current games called");
+  
+  console.log("Call watchGame" + snapshot.key);
+  watchGame(snapshot.key);
 
+});
+
+function setGameId(gameKey){
+  $("#gamePlayedId").val(gameKey);
+}
+
+//Function display user Choice
+function displayDetectedIcon(game){
+  console.log("displayDetectedIcon(game)");
+
+  $("#player1").text(game.creator.displayName);
+  $("#player2").text(game.joiner.displayName);
+  $("#gameCardDeck").show();  
+
+  
+  for(var key in game){
+    console.log("KEY  : " + key + " val : " + game[key]);
+  }
+
+  //check if user is joiner or creator
+  if(game.creator.uid == firebase.auth().currentUser.uid){
+    //if creator, display all choices, load joiner choice
+    $("#player1Choices").empty();
+    loadChoices("player1Choices");
+
+    if(game.joiner.choice){
+      let $img = createImage(game.joiner.choice);
+  
+      $("#player2Choice").empty();
+      $("#player2Choice").append($img);
+    }
+
+  }else if(game.joiner.uid == firebase.auth().currentUser.uid){
+    //if joiner, load all images for joiner, load creator choice
+    $("#player2Choices").empty();
+     loadChoices("player2Choices");
+     if(game.creator.choice){
+      let $img = createImage(game.creator.choice);
+  
+      $("#player1Choice").empty();
+      $("#player1Choice").append($img);
+    }
+  }
+}
+
+//Determine Winner
+
+function determineWinner(gRef,game){
+  let creatorChoice = game.creator.choice;
+  let joinerChoice = game.joiner.choice;
+
+  if ((creatorChoice === "rock" && joinerChoice === "scissors") ||
+    (creatorChoice === "scissors" && joinerChoice === "paper") || 
+    (creatorChoice === "paper" && joinerChoice === "rock")) {
+    creatorWins++;
+    $("#pOneScore").text(creatorWins);
+    $("#result").text("Player 1 Wins");
+  } else if (creatorChoice === joinerChoice) {
+    ties++;
+    $("#result").text("It was a Draw");
+  } else {
+    joinerWins++;
+    $("#pTwoScore").text(joinerWins);
+    $("#result").text("Player 2 Wins");
+  }
+  
+}
+
+//Games been playing currently
+currentGames.on("child_changed",function(snapshot){
+  console.log("Game changed jflhdjlhjl");
+});
