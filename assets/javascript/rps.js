@@ -105,11 +105,9 @@ function authStateChangeListener(){
 // Authentication state changes
 firebase.auth().onAuthStateChanged(authStateChangeListener);
 
-////////////////
-
 // Intialise Variables
 var userName="Guest";
-var STATE = {OPEN:1,JOINED:2};
+var STATE = {OPEN:1,JOINED:2,ICON_DETECTED:3,COMPLETE:4};
 
 /*
 {
@@ -158,10 +156,12 @@ function joinGame(key){
   loadChoices("player2Choices");
   
   
+  
   gRef.transaction(function(game){
     
     if(!game.joiner){
       $("#player1").text(game.creator.displayName);
+      $("#gamePlayedId").val(key);
       game.state=STATE.JOINED;
       //game.joiner={"name":userName}
       game.joiner={"uid":user.uid, "displayName":user.displayName}
@@ -177,12 +177,31 @@ function watchGame(key){
   gRef.on("value",function(snapshot){
     var game=snapshot.val();
     switch(game.STATE){
-      case STATE.JOINED:joinedGame(gRef,game);break;
-      case STATE.ICON_DETECTED:displayDetectedIcon(game);
-                                determineWinner(gRef,game);break;
-      case STATE.COMPLETE:showWinner(game);break;
+      case STATE.JOINED:
+        joinedGame(gRef,game);
+        break;
+      case STATE.ICON_DETECTED:
+        displayDetectedIcon(game);
+        determineWinner(gRef,game);
+        break;
+      case STATE.COMPLETE:
+        showWinner(game);
+        break;
     }
   });
+}
+
+//Function display user Choice
+function displayDetectedIcon(game){
+  
+  console.log("displayDetectedIcon(game);");
+  if(game.joiner.choice){
+    $("#player2Choice").empty();
+    $("#player2Choice").append();
+  }else if(game.creator.choice){
+    $("#player1Choice").empty();
+    $("#player1Choice").append();
+  }
 }
 
 //Function to send message
@@ -254,6 +273,39 @@ function getJoinerCard(){
 
 }
 
+function addUserChoice(userChoice,gameKey){
+  let userId = firebase.auth().currentUser.uid;
+
+  
+  
+  gRef = gameRef.child(gameKey);
+  //var keyRef = ref.child(key);
+  gRef.on('value', (snap) => game = snap.val());
+  console.log("game : " + game);
+
+  /*if (game.creator.uid == firebase.auth().currentUser.uid) {
+      data["creator/gcsPath"] = gcsPath;
+      data["creator/downloadURL"] = downloadURL;
+  } else {
+      data["joiner/gcsPath"] = gcsPath;
+      data["joiner/downloadURL"] = downloadURL;
+  }
+
+  gameRef.update(data);*/
+
+
+  var data = {state: STATE.ICON_DETECTED};
+  if(userId === game.joiner.uid){
+    data["joiner/choice"]=userChoice;
+  }else{
+    data["creator/choice"]=userChoice;
+  }
+
+  database.ref("/rps/game/" + gameKey).update(data);
+   
+  watchGame(gameKey);
+
+}
 
 
 // Event handlers
@@ -270,11 +322,12 @@ $(document).ready(function(){
 
   //When user makes his choice
 
-  $(".my-img").on("click",function(){
+  $(document).on("click",".my-img",function(){
     var userChoice = $(this).attr("id");
-    console.log(`user clicked ${userChoice}`);
+    console.log(`user clicked ${userChoice} and gameid : `);
+    console.log($("#gamePlayedId").val());
 
-    watchGame();
+    addUserChoice(userChoice,$("#gamePlayedId").val());
 
   });
     
@@ -323,7 +376,6 @@ chatRef.on("child_added",function(snapshot){
 //Listener for Open Games
 openGames.on("child_added",function(snapshot){
 
-  console.log("YAY ! OPEN GAMES");
   let gameId=snapshot.key;
   let gRef = snapshot.val();
   let createrName = gRef.creator.displayName;
