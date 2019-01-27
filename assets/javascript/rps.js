@@ -469,6 +469,24 @@ function determineWinner(gRef,game){
     $("#pTwoScore").text(joinerWins);
     $("#result").text("Player 2 Wins");
   }
+
+  gameCounter++;
+    if(gameCounter > 10){
+      console.log("Setting game state as complete");
+    gRef.update({
+        STATE: STATE.COMPLETE,
+        "creator/wins": creatorWins,
+        "joiner/wins": joinerWins
+    });
+  }
+}
+
+function showWinner(game){
+  if(game.creator.wins > game.joiner.wins){
+    $("result").text(`${game.creator.displayName} is the Winner!`);
+  }else{
+    $("result").text(`${game.joiner.displayName} is the Winner!`);
+  }
   
 }
 
